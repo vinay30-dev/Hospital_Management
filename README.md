@@ -1,0 +1,81 @@
+# Hospital Management
+
+Two-part system: a **Java (Maven) WAR** on Tomcat for the web UI and patient/doctor records (Hibernate), and a **Node.js Express** appointment REST API on port **3001** that shares the same **MySQL** database.
+
+## Prerequisites
+
+- JDK 17+, Maven 3.8+
+- Tomcat 9+
+- Node.js 18+
+- MySQL 8+
+
+## 1. Database
+
+Create the schema and seed data:
+
+```bash
+mysql -u root -p < sql/schema.sql
+```
+
+If MySQL uses a password, set it for both apps:
+
+- **Hibernate:** set env `HOSPITAL_DB_PASSWORD` or JVM `-Dhospital.db.password=...`, and optionally `HOSPITAL_DB_URL`, `HOSPITAL_DB_USER`.
+- **Node:** set `HOSPITAL_DB_PASSWORD` (and optionally `HOSPITAL_DB_HOST`, `HOSPITAL_DB_USER`, `HOSPITAL_DB_NAME`).
+
+Default app credentials are `hospital_user` / `hospital123` (created by `schema.sql`).
+Update `demo/src/main/resources/hibernate.cfg.xml` if your MySQL host/user differs.
+
+## 2. Node appointment API
+
+```bash
+cd node-api
+npm install
+npm start
+```
+
+Endpoints include:
+
+- `GET /health`
+- `POST /auth/login` — JSON `{ "email", "password" }` (optional; Java UI uses servlet login)
+- `GET /doctors`
+- `GET /doctor_slots?doctorId=&available=1`
+- `POST /doctor_slots`
+- `GET /api/v1/appointments?patientId=` or `?doctorId=`
+- `POST /api/v1/appointments` — `{ patient_id, doctor_id, slot_id, notes? }`
+- `PATCH /api/v1/appointments/:id/status` — `{ status, notes? }` (`SCHEDULED|CONFIRMED|COMPLETED|CANCELLED`)
+- `GET /api/v1/appointments/summary?doctorId=&from=&to=`
+- `DELETE /api/v1/appointments/:id`
+
+Default CORS allows `http://localhost:8080`. Override with env `CORS_ORIGINS` (comma-separated).
+
+## 3. Java WAR (Tomcat)
+
+```bash
+cd demo
+mvn package
+```
+
+Copy `demo/target/hospital-management.war` to Tomcat’s `webapps/` and start Tomcat, or deploy from your IDE.
+
+The UI uses `web.xml` context param `nodeApiBase` (default `http://localhost:3001`) for `fetch()` from JSP. Change it if the API runs elsewhere.
+
+## Demo accounts
+
+All use password **`password123`**:
+
+| Role    | Email                 |
+|---------|------------------------|
+| Patient | `alice@patient.com`   |
+| Doctor  | `dr.smith@hospital.com` |
+
+## Architecture
+
+- **Tomcat:** JSP login, session + `AuthFilter` on `/patient/*` and `/doctor/*`, Hibernate for `patients` and `doctors`.
+- **Node:** `mysql2` for `appointments` and `doctor_slots`; JSP dashboards call the API via AJAX.
+
+## Professional features added
+
+- Patient dashboard: status/search filters, notes while booking, appointment notes display.
+- Doctor dashboard: patient search, status workflow actions (confirm/complete/cancel), notes updates.
+- Doctor analytics page: status counts and total appointments with date-range filtering.
+- API upgrades: stricter status/date validation, overlap prevention for slot creation, summary endpoint.
