@@ -233,6 +233,17 @@
         <button class="btn-signin" type="submit">Sign In →</button>
       </form>
 
+    </form>
+
+    <!-- Register link -->
+    <div style="text-align:center; margin-top: 20px; padding-top: 18px; border-top: 1px solid rgba(136,146,176,0.12);">
+      <span style="font-size:13px; color: var(--slate);">Don't have an account?</span>
+      <a href="${pageContext.request.contextPath}/register"
+         style="color: var(--teal); font-size:13px; font-weight:600; text-decoration:none; margin-left:6px;">
+        Create one →
+      </a>
+    </div>
+
       <div class="demo-box">
         <div class="demo-label">Demo Credentials</div>
         <div class="demo-row">

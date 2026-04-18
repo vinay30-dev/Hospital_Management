@@ -75,7 +75,9 @@ All use password **`password123`**:
 
 ## Professional features added
 
-- Patient dashboard: status/search filters, notes while booking, appointment notes display.
-- Doctor dashboard: patient search, status workflow actions (confirm/complete/cancel), notes updates.
-- Doctor analytics page: status counts and total appointments with date-range filtering.
-- API upgrades: stricter status/date validation, overlap prevention for slot creation, summary endpoint.
+- Shared **portal UI** (`css/portal.css`): glass panels, typography, and background consistent with the login page.
+- Patient dashboard: **next visit** summary, **upcoming count**, status/search filters, booking notes, **CSV export**.
+- Doctor dashboard: **today / needs-action / active** stat tiles, patient search, workflow actions, **CSV export**, API health link.
+- Patient **profile** (`/patient/profile`): view name/email and update **phone** via Hibernate.
+- Doctor analytics page: status counts, charts, date-range filtering.
+- API upgrades: stricter status/date validation, overlap prevention for slot creation, summary + timeline endpoints.
