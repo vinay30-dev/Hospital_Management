@@ -59,6 +59,8 @@ Copy `demo/target/hospital-management.war` to Tomcat’s `webapps/` and start To
 
 The UI uses `web.xml` context param `nodeApiBase` (default `http://localhost:3001`) for `fetch()` from JSP. Change it if the API runs elsewhere.
 
+Static CSS is loaded via `WEB-INF/jsp/include/portal-head.jsp`, which sets `<base href="…/">` and root-relative `css/app.css` / `css/portal.css` so styles work on nested paths like `/patient/dashboard` (avoids the browser requesting `/patient/css/...`).
+
 ## Demo accounts
 
 All use password **`password123`**:

@@ -6,10 +6,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Hospital Management — Create Account</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-QWTKZyjpPUQBNOrnQlzo3ftqm0Jj5Sf9zEHlPApapd-rWsAHREzkweiTw+ALEwIH" crossorigin="anonymous">
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="${pageContext.request.contextPath}/css/app.css"/>
+  <jsp:include page="/WEB-INF/jsp/include/portal-head.jsp"/>
   <style>
     :root {
       --navy:      #0b1628;
