@@ -10,66 +10,54 @@
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="${pageContext.request.contextPath}/css/app.css"/>
-  <style>
-    :root {
-      --navy: #0b1628;
-      --teal: #0ee8c4;
-      --teal-dim: rgba(14,232,196,0.12);
-      --teal-glow: rgba(14,232,196,0.35);
-      --slate: #8892b0;
-      --light: #ccd6f6;
-      --card-bg: rgba(17, 34, 64, 0.82);
-      --input-bg: rgba(11, 22, 40, 0.7);
-    }
-
-    body { font-family: 'DM Sans', sans-serif; background: var(--navy); }
-    .bg-orb { position: fixed; border-radius: 50%; filter: blur(80px); opacity: .18; pointer-events: none; }
-    .bg-orb-1 { width: 480px; height: 480px; background: var(--teal); top: -140px; left: -180px; }
-    .bg-orb-2 { width: 360px; height: 360px; background: #3b82f6; bottom: -120px; right: -120px; }
-    .bg-grid { position: fixed; inset: 0; background-image:
-      linear-gradient(rgba(14,232,196,0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(14,232,196,0.04) 1px, transparent 1px);
-      background-size: 60px 60px; pointer-events: none; }
-
-    .nav-glass { background: rgba(11, 22, 40, 0.82) !important; backdrop-filter: blur(14px); border-bottom: 1px solid rgba(14,232,196,.15) !important; }
-    .nav-brand { font-family: 'Playfair Display', serif; color: var(--light) !important; }
-
-    .panel-card { background: var(--card-bg); border: 1px solid rgba(14,232,196,0.12) !important; border-radius: 14px; backdrop-filter: blur(14px); box-shadow: 0 18px 40px rgba(0,0,0,.35); }
-    .panel-title { color: var(--light); font-family: 'Playfair Display', serif; }
-
-    .form-label { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--slate); margin-bottom: 6px; }
-    .form-control, .form-select { background: var(--input-bg) !important; border: 1px solid rgba(136,146,176,.25) !important; color: var(--light) !important; }
-    .form-control:focus, .form-select:focus { border-color: var(--teal) !important; box-shadow: 0 0 0 3px var(--teal-dim) !important; }
-    .btn-primary { background: linear-gradient(135deg, var(--teal), #0acfb1); border: none; color: var(--navy); font-weight: 600; box-shadow: 0 8px 22px var(--teal-glow); }
-    .btn-outline-light { border-color: rgba(204,214,246,.35); color: var(--light); }
-    .table { color: var(--light); }
-    .table thead { --bs-table-bg: rgba(255,255,255,.03); --bs-table-color: var(--slate); }
-    .table tbody tr { --bs-table-bg: transparent; --bs-table-color: var(--light); }
-  </style>
+  <link rel="stylesheet" href="${pageContext.request.contextPath}/css/portal.css"/>
 </head>
-<body class="app-bg">
-  <div class="bg-orb bg-orb-1"></div>
-  <div class="bg-orb bg-orb-2"></div>
-  <div class="bg-grid"></div>
-  <nav class="navbar navbar-expand-lg navbar-dark nav-glass">
+<body class="app-bg portal-body portal-page">
+  <div class="portal-bg-orb portal-bg-orb-1"></div>
+  <div class="portal-bg-orb portal-bg-orb-2"></div>
+  <div class="portal-bg-grid"></div>
+
+  <nav class="navbar navbar-expand-lg navbar-dark portal-nav">
     <div class="container">
-      <a class="navbar-brand nav-brand fw-semibold" href="${pageContext.request.contextPath}/">Hospital</a>
-      <div class="d-flex align-items-center gap-3">
-        <div class="text-white-50 small">
-          Signed in as <span class="text-white">${sessionScope.displayName}</span>
-        </div>
+      <a class="navbar-brand portal-brand fw-semibold" href="${pageContext.request.contextPath}/">Hospital</a>
+      <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
+        <span class="text-white-50 small d-none d-md-inline">Signed in as <span class="text-white">${sessionScope.displayName}</span></span>
+        <a class="btn btn-outline-light btn-sm" href="${pageContext.request.contextPath}/patient/profile">Profile</a>
         <a class="btn btn-outline-light btn-sm" href="${pageContext.request.contextPath}/logout">Sign out</a>
       </div>
     </div>
   </nav>
 
-  <main class="container py-4">
+  <main class="container py-4 portal-main">
+    <header class="portal-hero">
+      <h1>Your care hub</h1>
+      <p>Book visits, track status, and manage upcoming appointments in one place.</p>
+    </header>
+
+    <div class="row g-3 mb-4">
+      <div class="col-md-4">
+        <div class="portal-stat h-100">
+          <div class="label">Upcoming</div>
+          <div class="value" id="statUpcoming">—</div>
+          <div class="hint">Scheduled or confirmed, future</div>
+        </div>
+      </div>
+      <div class="col-md-8">
+        <div class="card panel-card mb-0">
+          <div class="card-body py-3">
+            <div class="label text-uppercase small text-muted-portal mb-1">Next visit</div>
+            <div id="nextVisit" class="panel-title mb-0" style="font-size:1rem;">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="row g-4">
       <div class="col-12 col-lg-5">
         <div class="card panel-card">
           <div class="card-body">
             <h2 class="h5 mb-1 panel-title">Book an appointment</h2>
-            <p class="text-muted mb-3">Choose a doctor and an available slot.</p>
+            <p class="text-muted-portal small mb-3">Choose a doctor and an open slot. Add notes for triage.</p>
 
             <div class="vstack gap-3">
               <div>
@@ -81,11 +69,11 @@
                 <select class="form-select" id="slotSelect" disabled></select>
               </div>
               <div>
-                <label class="form-label">Reason / Notes</label>
-                <textarea class="form-control" id="notesInput" rows="2" placeholder="Describe symptoms or reason"></textarea>
+                <label class="form-label">Reason / notes</label>
+                <textarea class="form-control" id="notesInput" rows="2" placeholder="Symptoms, medications, or questions"></textarea>
               </div>
-              <button class="btn btn-primary" type="button" id="bookBtn" disabled>Book</button>
-              <div id="bookMsg" class="small text-muted"></div>
+              <button class="btn btn-primary" type="button" id="bookBtn" disabled>Book visit</button>
+              <div id="bookMsg" class="small text-muted-portal"></div>
             </div>
           </div>
         </div>
@@ -94,9 +82,12 @@
       <div class="col-12 col-lg-7">
         <div class="card panel-card">
           <div class="card-body">
-            <div class="d-flex align-items-center justify-content-between mb-2">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
               <h2 class="h5 mb-0 panel-title">Your appointments</h2>
-              <span class="badge text-bg-secondary">Patient</span>
+              <div class="d-flex gap-2 align-items-center">
+                <span class="badge text-bg-secondary">Patient</span>
+                <button type="button" class="btn btn-sm btn-outline-light" id="exportCsvBtn">Export CSV</button>
+              </div>
             </div>
             <div class="row g-2 mb-3">
               <div class="col-md-4">
@@ -110,14 +101,14 @@
                 </select>
               </div>
               <div class="col-md-5">
-                <label class="form-label mb-1">Doctor Search</label>
-                <input id="searchFilter" class="form-control form-control-sm" placeholder="doctor or specialty"/>
+                <label class="form-label mb-1">Doctor search</label>
+                <input id="searchFilter" class="form-control form-control-sm" placeholder="Name or specialty"/>
               </div>
               <div class="col-md-3 d-flex align-items-end">
                 <button id="refreshBtn" class="btn btn-sm btn-primary w-100" type="button">Refresh</button>
               </div>
             </div>
-            <div id="listMsg" class="small text-muted mb-2"></div>
+            <div id="listMsg" class="small text-muted-portal mb-2"></div>
 
             <div class="table-responsive">
               <table class="table table-sm align-middle mb-0" id="apptTable">
@@ -133,10 +124,14 @@
     </div>
   </main>
 
+  <footer class="portal-footer">
+    <p class="mb-0">Questions? <a href="mailto:support@hospital.local">support@hospital.local</a> · <a href="${initParam.nodeApiBase}/health" target="_blank" rel="noopener">Service status</a></p>
+  </footer>
+
   <script>
     const API = '${initParam.nodeApiBase}';
     const patientId = Number('${sessionScope.userId}');
-    const role = '${sessionScope.role}';
+    let lastRows = [];
 
     async function getJson(url, opts) {
       const r = await fetch(url, Object.assign({headers: {'Accept': 'application/json'}}, opts || {}));
@@ -145,6 +140,35 @@
       try { data = text ? JSON.parse(text) : null; } catch (e) {}
       if (!r.ok) throw new Error((data && data.message) || text || r.statusText);
       return data;
+    }
+
+    function parseTime(v) {
+      if (!v) return null;
+      const s = String(v).replace(' ', 'T');
+      const d = new Date(s);
+      return isNaN(d.getTime()) ? null : d;
+    }
+
+    function updatePatientStats(rows) {
+      const now = new Date();
+      const active = rows.filter(a => a.status === 'SCHEDULED' || a.status === 'CONFIRMED');
+      let upcoming = 0;
+      let next = null;
+      const future = active
+        .map(a => ({a, t: parseTime(a.appointment_time)}))
+        .filter(x => x.t && x.t >= now)
+        .sort((x, y) => x.t - y.t);
+      upcoming = future.length;
+      if (future.length) next = future[0].a;
+      document.getElementById('statUpcoming').textContent = upcoming;
+      const el = document.getElementById('nextVisit');
+      if (!next) {
+        el.textContent = 'No upcoming visits.';
+      } else {
+        const when = String(next.appointment_time).replace('T', ' ').substring(0, 16);
+        el.innerHTML = '<strong>' + (next.doctor_name || 'Doctor') + '</strong> · ' + when +
+          ' <span class="badge text-bg-primary ms-1">' + next.status + '</span>';
+      }
     }
 
     async function loadDoctors() {
@@ -198,7 +222,9 @@
         if (q) params.set('q', q);
         if (!status) params.set('includeCancelled', 'false');
         const rows = await getJson(API + '/api/v1/appointments?' + params.toString());
+        lastRows = rows;
         document.getElementById('listMsg').textContent = rows.length ? '' : 'No appointments yet.';
+        updatePatientStats(rows);
         rows.forEach(a => {
           const tr = document.createElement('tr');
           tr.innerHTML = '<td>' + a.id + '</td><td>' + (a.doctor_name || a.doctor_id) + '</td><td>' +
@@ -225,6 +251,31 @@
         document.getElementById('listMsg').textContent = e.message;
       }
     }
+
+    document.getElementById('exportCsvBtn').addEventListener('click', () => {
+      if (!lastRows.length) {
+        alert('No rows to export.');
+        return;
+      }
+      const cols = ['id', 'doctor_name', 'appointment_time', 'status', 'notes'];
+      let csv = cols.join(',') + '\n';
+      lastRows.forEach(a => {
+        const row = cols.map(c => {
+          let v = a[c] != null ? String(a[c]) : '';
+          v = v.replace(/"/g, '""');
+          if (/[",\n]/.test(v)) v = '"' + v + '"';
+          return v;
+        });
+        csv += row.join(',') + '\n';
+      });
+      const blob = new Blob([csv], {type: 'text/csv;charset=utf-8'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'patient-appointments.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
 
     document.getElementById('doctorSelect').addEventListener('change', e => loadSlots(e.target.value));
     document.getElementById('slotSelect').addEventListener('change', e => {
