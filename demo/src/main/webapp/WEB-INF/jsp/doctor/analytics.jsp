@@ -196,6 +196,15 @@
       padding: 22px 24px;
       box-shadow: 0 8px 32px rgba(0,0,0,0.3);
       height: 100%;
+      overflow: hidden;
+    }
+    /* Fixed height prevents Chart.js resize loop (page growing forever with maintainAspectRatio:false) */
+    .chart-canvas-wrap {
+      position: relative;
+      width: 100%;
+      height: 260px;
+      max-height: 260px;
+      overflow: hidden;
     }
     .chart-title {
       font-size: 13px; font-weight: 600;
@@ -281,13 +290,17 @@
       <div class="col-lg-4">
         <div class="chart-card">
           <div class="chart-title">Status Distribution</div>
-          <canvas id="statusChart" height="240"></canvas>
+          <div class="chart-canvas-wrap">
+            <canvas id="statusChart"></canvas>
+          </div>
         </div>
       </div>
       <div class="col-lg-8">
         <div class="chart-card">
           <div class="chart-title">Appointment Trend</div>
-          <canvas id="timelineChart" height="240"></canvas>
+          <div class="chart-canvas-wrap">
+            <canvas id="timelineChart"></canvas>
+          </div>
         </div>
       </div>
     </div>
@@ -297,7 +310,7 @@
 
   <script>
     const API = '${initParam.nodeApiBase}';
-    const doctorId = ${sessionScope.userId};
+    const doctorId = Number('${sessionScope.userId}');
     let statusChart, timelineChart, refreshTimer;
 
     // Chart.js global defaults for dark theme
@@ -333,6 +346,7 @@
               legend: { position: 'bottom', labels: { padding: 16, usePointStyle: true, pointStyleWidth: 8, font: { family: 'DM Sans', size: 12 } } }
             },
             maintainAspectRatio: false,
+            resizeDelay: 0,
             cutout: '65%'
           }
         });
@@ -354,7 +368,9 @@
             ]
           },
           options: {
-            responsive: true, maintainAspectRatio: false,
+            responsive: true,
+            maintainAspectRatio: false,
+            resizeDelay: 0,
             interaction: { mode: 'index', intersect: false },
             plugins: {
               legend: { position: 'bottom', labels: { padding: 16, usePointStyle: true, pointStyleWidth: 8, font: { family: 'DM Sans', size: 12 } } }
@@ -396,13 +412,13 @@
           getCount(statusMap, 'COMPLETED'),
           getCount(statusMap, 'CANCELLED')
         ];
-        statusChart.update('active');
+        statusChart.update('none');
         timelineChart.data.labels = timeline.labels || [];
         timelineChart.data.datasets[0].data = timeline.series?.SCHEDULED || [];
         timelineChart.data.datasets[1].data = timeline.series?.CONFIRMED  || [];
         timelineChart.data.datasets[2].data = timeline.series?.COMPLETED  || [];
         timelineChart.data.datasets[3].data = timeline.series?.CANCELLED  || [];
-        timelineChart.update('active');
+        timelineChart.update('none');
         document.getElementById('msg').textContent = '';
       } catch (e) {
         document.getElementById('msg').textContent = e.message;
@@ -421,6 +437,12 @@
     document.getElementById('autoRefresh').addEventListener('change', setAutoRefresh);
     setAutoRefresh();
     loadSummary();
+    window.addEventListener('beforeunload', () => {
+      if (refreshTimer) clearInterval(refreshTimer);
+      try { if (statusChart) statusChart.destroy(); } catch (e) {}
+      try { if (timelineChart) timelineChart.destroy(); } catch (e) {}
+    });
   </script>
+  <jsp:include page="/WEB-INF/jsp/include/portal-chat-widget.jsp"/>
 </body>
 </html>

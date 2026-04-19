@@ -4,6 +4,7 @@ import appointmentsRouter from './routes/appointments.js';
 import doctorsRouter from './routes/doctors.js';
 import doctorSlotsRouter from './routes/doctorSlots.js';
 import authRouter from './routes/auth.js';
+import chatRouter from './routes/chat.js';
 
 const app = express();
 const PORT = Number(process.env.PORT || 3001);
@@ -29,6 +30,7 @@ app.use('/auth', authRouter);
 app.use('/doctors', doctorsRouter);
 app.use('/doctor_slots', doctorSlotsRouter);
 app.use('/api/v1/appointments', appointmentsRouter);
+app.use('/api/chat', chatRouter);
 
 app.use((err, req, res, next) => {
   console.error(err);

@@ -58,5 +58,6 @@
   <footer class="portal-footer">
     <p class="mb-0">Need help? Contact <a href="mailto:support@hospital.local">support@hospital.local</a></p>
   </footer>
+  <jsp:include page="/WEB-INF/jsp/include/portal-chat-widget.jsp"/>
 </body>
 </html>

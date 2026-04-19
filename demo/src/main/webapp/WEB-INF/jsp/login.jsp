@@ -256,5 +256,6 @@
 
     <p class="footer-note">Node API on <code>http://localhost:3001</code></p>
   </div>
+  <jsp:include page="/WEB-INF/jsp/include/portal-chat-widget.jsp"/>
 </body>
 </html>

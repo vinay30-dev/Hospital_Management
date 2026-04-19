@@ -649,5 +649,6 @@
       return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
   </script>
+  <jsp:include page="/WEB-INF/jsp/include/portal-chat-widget.jsp"/>
 </body>
 </html>

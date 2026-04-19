@@ -10,3 +10,5 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/app.css"/>
 <link rel="stylesheet" href="css/portal.css"/>
+<%-- Root-absolute href so the chat CSS always resolves (not dependent on &lt;base&gt; quirks). --%>
+<link rel="stylesheet" href="<%= ctx %>/css/portal-chat-widget.css"/>
