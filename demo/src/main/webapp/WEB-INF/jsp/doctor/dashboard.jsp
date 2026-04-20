@@ -46,6 +46,15 @@
     <div class="container">
       <a class="navbar-brand portal-brand fw-semibold" href="${pageContext.request.contextPath}/">Hospital</a>
       <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
+        <div class="dropdown me-2">
+          <button class="btn btn-outline-light btn-sm position-relative dropdown-toggle" type="button" id="notifDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            🔔 
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notifBadge" style="display:none;">0</span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notifDropdown" id="notifList" style="min-width: 250px; background: rgba(11,22,40,.9); border: 1px solid rgba(14,232,196,.15);">
+             <li><a class="dropdown-item text-white-50" href="#">No new notifications</a></li>
+          </ul>
+        </div>
         <span class="text-white-50 small d-none d-md-inline">Signed in as <span class="text-white">${sessionScope.displayName}</span></span>
         <a class="btn btn-outline-light btn-sm" href="${pageContext.request.contextPath}/doctor/analytics">Analytics</a>
         <a class="btn btn-outline-light btn-sm" href="${pageContext.request.contextPath}/logout">Sign out</a>
@@ -111,6 +120,13 @@
               </div>
               <button class="btn btn-primary" type="button" id="addSlotBtn">Add slot</button>
               <div id="slotMsg" class="small text-muted-portal"></div>
+              
+              <div class="mt-2">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <h3 class="h6 mb-0" style="color: #ccd6f6;">Upcoming Slots</h3>
+                </div>
+                <ul id="doctorSlotsList" class="list-group list-group-flush bg-transparent small overflow-auto" style="max-height: 180px;"></ul>
+              </div>
             </div>
           </div>
         </div>
@@ -146,7 +162,7 @@
 
             <div class="table-responsive">
               <table class="table table-sm align-middle mb-0" id="apptTable">
-                <thead class="table-light">
+                <thead style="background: rgba(255,255,255,.03); color: #8892b0;">
                 <tr><th>ID</th><th>Patient</th><th>Time</th><th>Status</th><th>Notes</th><th class="text-end">Actions</th></tr>
                 </thead>
                 <tbody></tbody>
@@ -157,6 +173,21 @@
       </div>
     </div>
   </main>
+
+  <!-- Docs Modal -->
+  <div class="modal fade" id="docsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content" style="background: rgba(11,22,40,.95); border: 1px solid rgba(14,232,196,.25); color: #ccd6f6;">
+        <div class="modal-header border-secondary">
+          <h5 class="modal-title" style="font-family: 'Playfair Display', serif;">Patient Documents</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <ul id="modalDocList" class="list-group list-group-flush bg-transparent"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <footer class="portal-footer">
     <p class="mb-0">${sessionScope.displayName} · Physician · <a href="${initParam.nodeApiBase}/health" target="_blank" rel="noopener">API health</a></p>
@@ -183,7 +214,7 @@
         let today = 0, pending = 0;
         rows.forEach(a => {
           const d = String(a.appointment_time).slice(0, 10);
-          if (d === todayStr && (a.status === 'SCHEDULED' || a.status === 'CONFIRMED')) today++;
+          if (a.status === 'SCHEDULED' || a.status === 'CONFIRMED') today++;
           if (a.status === 'SCHEDULED') pending++;
         });
         document.getElementById('statToday').textContent = today;
@@ -217,6 +248,7 @@
         document.getElementById('slotMsg').textContent = 'Slot added.';
         await loadAppointments();
         await refreshStats();
+        await loadDoctorSlots();
       } catch (e) {
         document.getElementById('slotMsg').textContent = e.message;
       }
@@ -246,11 +278,54 @@
             actions.push('<button class="btn btn-link btn-sm p-0 me-2 action" data-id="' + a.id + '" data-action="COMPLETED">Complete</button>');
             actions.push('<button class="btn btn-link btn-sm p-0 text-danger action" data-id="' + a.id + '" data-action="CANCELLED">Cancel</button>');
           }
+          if (a.status === 'COMPLETED' || a.status === 'CONFIRMED') {
+            actions.push('<button class="btn btn-link btn-sm p-0 me-2 prescribe" data-id="' + a.id + '">Prescribe</button>');
+          }
+          actions.push('<button class="btn btn-link btn-sm p-0 view-docs" data-pid="' + a.patient_id + '">Docs</button>');
+
           tr.innerHTML = '<td>' + a.id + '</td><td>' + (a.patient_name || a.patient_id) + '</td><td>' +
             String(a.appointment_time).replace('T', ' ').substring(0, 16) + '</td><td><span class="badge text-bg-' +
             (a.status === 'SCHEDULED' ? 'primary' : (a.status === 'CONFIRMED' ? 'info' : (a.status === 'CANCELLED' ? 'secondary' : 'success'))) +
             '">' + a.status + '</span></td><td class="small">' + (a.notes || '-') + '</td><td class="text-end">' + actions.join('') + '</td>';
           tbody.appendChild(tr);
+        });
+
+        tbody.querySelectorAll('.prescribe').forEach(btn => {
+          btn.addEventListener('click', async () => {
+             const med = prompt('Medication name:');
+             if(!med) return;
+             const dosage = prompt('Dosage:');
+             if(!dosage) return;
+             const inst = prompt('Instructions (optional):');
+             try {
+                await getJson(API + '/api/v1/appointments/' + btn.dataset.id + '/prescriptions', {
+                   method: 'POST',
+                   headers: {'Content-Type': 'application/json'},
+                   body: JSON.stringify({ medication: med, dosage: dosage, instructions: inst })
+                });
+                alert('Prescription saved.');
+             } catch(e) { alert(e.message); }
+          });
+        });
+
+        tbody.querySelectorAll('.view-docs').forEach(btn => {
+          btn.addEventListener('click', async () => {
+             const list = document.getElementById('modalDocList');
+             list.innerHTML = 'Loading...';
+             const modal = new bootstrap.Modal(document.getElementById('docsModal'));
+             modal.show();
+             try {
+                const docs = await getJson(API + '/api/v1/patients/' + btn.dataset.pid + '/documents');
+                if(!docs.length) { list.innerHTML = 'No documents found.'; return; }
+                list.innerHTML = '';
+                docs.forEach(d => {
+                   list.innerHTML += `<li class="list-group-item bg-transparent border-secondary text-light d-flex justify-content-between align-items-center" style="color:#ccd6f6!important;">
+                     <span>\${d.filename} <small style="color:#8892b0;"><br/>by \${d.uploader_role} on \${String(d.uploaded_at).substring(0, 10)}</small></span>
+                     <a href="\${API}\${d.filepath}" target="_blank" class="btn btn-sm btn-outline-info">Download</a>
+                   </li>`;
+                });
+             } catch(e) { list.innerHTML = e.message; }
+          });
         });
         tbody.querySelectorAll('.action').forEach(btn => {
           btn.addEventListener('click', async () => {
@@ -304,9 +379,60 @@
       if (e.key === 'Enter') loadAppointments();
     });
 
+    async function loadNotifications() {
+      try {
+        const notifs = await getJson(API + '/api/v1/notifications?userType=DOCTOR&userId=' + doctorId);
+        const badge = document.getElementById('notifBadge');
+        const list = document.getElementById('notifList');
+        if(notifs.length > 0) {
+           badge.textContent = notifs.length;
+           badge.style.display = 'inline-block';
+           list.innerHTML = '';
+           notifs.forEach(n => {
+              const li = document.createElement('li');
+              li.innerHTML = `<a class="dropdown-item text-white" href="#" style="white-space:normal;font-size:0.85rem;">\${n.message}</a>`;
+              li.addEventListener('click', async (e) => {
+                 e.preventDefault();
+                 await fetch(API + '/api/v1/notifications/' + n.id + '/read', {method:'PATCH'});
+                 loadNotifications();
+              });
+              list.appendChild(li);
+           });
+        } else {
+           badge.style.display = 'none';
+           list.innerHTML = '<li><a class="dropdown-item text-white-50" href="#">No new notifications</a></li>';
+        }
+      } catch(e) {}
+    }
+
+    setInterval(loadNotifications, 30000); // Check every 30s
+
+    async function loadDoctorSlots() {
+      const list = document.getElementById('doctorSlotsList');
+      list.innerHTML = '';
+      try {
+        const slots = await getJson(API + '/doctor_slots?doctorId=' + doctorId);
+        if(!slots.length) {
+          list.innerHTML = '<li class="list-group-item bg-transparent text-muted-portal border-0 px-0">No slots created.</li>';
+          return;
+        }
+        slots.forEach(s => {
+          list.innerHTML += `<li class="list-group-item bg-transparent text-light border-secondary px-0 d-flex justify-content-between align-items-center" style="color:#ccd6f6!important;">
+            <span>\${String(s.start_time).replace('T', ' ').substring(0, 16)}</span>
+            <span class="badge \${s.is_booked ? 'text-bg-success' : 'text-bg-secondary'}">\${s.is_booked ? 'Booked' : 'Open'}</span>
+          </li>`;
+        });
+      } catch (e) {
+        list.innerHTML = `<li class="list-group-item bg-transparent text-danger px-0">${e.message}</li>`;
+      }
+    }
+
+    loadNotifications();
     refreshStats();
     loadAppointments();
+    loadDoctorSlots();
   </script>
   <jsp:include page="/WEB-INF/jsp/include/portal-chat-widget.jsp"/>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

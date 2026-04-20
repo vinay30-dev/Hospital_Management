@@ -46,6 +46,15 @@
     <div class="container">
       <a class="navbar-brand portal-brand fw-semibold" href="${pageContext.request.contextPath}/">Hospital</a>
       <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
+        <div class="dropdown me-2">
+          <button class="btn btn-outline-light btn-sm position-relative dropdown-toggle" type="button" id="notifDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            🔔 
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notifBadge" style="display:none;">0</span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notifDropdown" id="notifList" style="min-width: 250px; background: rgba(11,22,40,.9); border: 1px solid rgba(14,232,196,.15);">
+             <li><a class="dropdown-item text-white-50" href="#">No new notifications</a></li>
+          </ul>
+        </div>
         <span class="text-white-50 small d-none d-md-inline">Signed in as <span class="text-white">${sessionScope.displayName}</span></span>
         <a class="btn btn-outline-light btn-sm" href="${pageContext.request.contextPath}/patient/profile">Profile</a>
         <a class="btn btn-outline-light btn-sm" href="${pageContext.request.contextPath}/logout">Sign out</a>
@@ -137,11 +146,31 @@
 
             <div class="table-responsive">
               <table class="table table-sm align-middle mb-0" id="apptTable">
-                <thead class="table-light">
-                <tr><th>ID</th><th>Doctor</th><th>Time</th><th>Status</th><th>Notes</th><th class="text-end"></th></tr>
+                <thead style="background: rgba(255,255,255,.03); color: #8892b0;">
+                <tr><th>ID</th><th>Doctor</th><th>Time</th><th>Status</th><th>Notes</th><th class="text-end">Prescription</th><th class="text-end"></th></tr>
                 </thead>
                 <tbody></tbody>
               </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- New Documents Section -->
+      <div class="col-12 mt-4">
+        <div class="card panel-card">
+          <div class="card-body">
+            <h2 class="h5 mb-2 panel-title">My Lab Reports & Documents</h2>
+            <div class="row">
+               <div class="col-md-5 vstack gap-2 border-end border-secondary pe-3">
+                 <label class="form-label">Upload New Document</label>
+                 <input type="file" id="docUpload" class="form-control form-control-sm">
+                 <button class="btn btn-sm btn-outline-light" type="button" id="uploadDocBtn">Upload</button>
+                 <div id="uploadMsg" class="small text-muted-portal"></div>
+               </div>
+               <div class="col-md-7 ps-3">
+                 <ul id="docList" class="list-group list-group-flush bg-transparent"></ul>
+               </div>
             </div>
           </div>
         </div>
@@ -252,13 +281,26 @@
         updatePatientStats(rows);
         rows.forEach(a => {
           const tr = document.createElement('tr');
-          tr.innerHTML = '<td>' + a.id + '</td><td>' + (a.doctor_name || a.doctor_id) + '</td><td>' +
-            String(a.appointment_time).replace('T', ' ').substring(0, 16) + '</td><td><span class="badge text-bg-' +
-            (a.status === 'SCHEDULED' ? 'primary' : (a.status === 'CONFIRMED' ? 'info' : (a.status === 'CANCELLED' ? 'secondary' : 'success'))) +
-            '">' + a.status + '</span></td><td class="small">' + (a.notes || '-') + '</td><td class="text-end">' +
-            (a.status === 'SCHEDULED' ? '<button data-id="' + a.id + '" class="btn btn-link btn-sm p-0 cancel">Cancel</button>' : '') + '</td>';
-          tbody.appendChild(tr);
-        });
+            tr.innerHTML = '<td>' + a.id + '</td><td>' + (a.doctor_name || a.doctor_id) + '</td><td>' +
+              String(a.appointment_time).replace('T', ' ').substring(0, 16) + '</td><td><span class="badge text-bg-' +
+              (a.status === 'SCHEDULED' ? 'primary' : (a.status === 'CONFIRMED' ? 'info' : (a.status === 'CANCELLED' ? 'secondary' : 'success'))) +
+              '">' + a.status + '</span></td><td class="small">' + (a.notes || '-') + 
+              '</td><td class="text-end">' + (a.status === 'COMPLETED' ? '<button class="btn btn-link btn-sm p-0 me-2 rx" data-id="' + a.id + '">View</button>' : '-') + 
+              '</td><td class="text-end">' +
+              (a.status === 'SCHEDULED' ? '<button data-id="' + a.id + '" class="btn btn-link btn-sm p-0 cancel">Cancel</button>' : '') + '</td>';
+            tbody.appendChild(tr);
+          });
+          
+          tbody.querySelectorAll('.rx').forEach(btn => {
+            btn.addEventListener('click', async () => {
+              try {
+                const rxList = await getJson(API + '/api/v1/appointments/' + btn.dataset.id + '/prescriptions');
+                if(!rxList.length) { alert('No prescription found for this visit.'); return; }
+                const rx = rxList[0];
+                alert(`Medication: ${rx.medication}\nDosage: ${rx.dosage}\nNotes: ${rx.instructions}`);
+              } catch(e) { }
+            });
+          });
         tbody.querySelectorAll('.cancel').forEach(btn => {
           btn.addEventListener('click', async () => {
             if (!confirm('Cancel this appointment?')) return;
@@ -337,8 +379,76 @@
       if (e.key === 'Enter') loadAppointments();
     });
 
+    async function loadDocuments() {
+      const docList = document.getElementById('docList');
+      docList.innerHTML = '';
+      try {
+        const docs = await getJson(API + '/api/v1/patients/' + patientId + '/documents');
+        if(!docs.length) { docList.innerHTML = '<li class="list-group-item bg-transparent text-white-50 border-0">No documents uploaded.</li>'; return; }
+        docs.forEach(d => {
+           docList.innerHTML += `<li class="list-group-item bg-transparent border-secondary text-light d-flex justify-content-between align-items-center" style="color:#ccd6f6!important;">
+             <span>\${d.filename} <small style="color:#8892b0;"><br/>by \${d.uploader_role} on \${String(d.uploaded_at).substring(0, 10)}</small></span>
+             <a href="\${API}\${d.filepath}" target="_blank" class="btn btn-sm btn-outline-info">Download</a>
+           </li>`;
+        });
+      } catch (e) {
+        docList.innerHTML = `<li class="list-group-item bg-transparent text-danger">${e.message}</li>`;
+      }
+    }
+    
+    document.getElementById('uploadDocBtn').addEventListener('click', async () => {
+      const fileInput = document.getElementById('docUpload');
+      if(!fileInput.files[0]) return;
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+      formData.append('uploader_id', patientId);
+      formData.append('uploader_role', 'PATIENT');
+      document.getElementById('uploadMsg').textContent = 'Uploading...';
+      try {
+         const resp = await fetch(API + '/api/v1/patients/' + patientId + '/documents', {
+             method: 'POST', body: formData
+         });
+         if(!resp.ok) throw new Error('Upload failed');
+         document.getElementById('uploadMsg').textContent = 'Uploaded successfully.';
+         fileInput.value = '';
+         loadDocuments();
+      } catch(e) {
+         document.getElementById('uploadMsg').textContent = e.message;
+      }
+    });
+
+    async function loadNotifications() {
+      try {
+        const notifs = await getJson(API + '/api/v1/notifications?userType=PATIENT&userId=' + patientId);
+        const badge = document.getElementById('notifBadge');
+        const list = document.getElementById('notifList');
+        if(notifs.length > 0) {
+           badge.textContent = notifs.length;
+           badge.style.display = 'inline-block';
+           list.innerHTML = '';
+           notifs.forEach(n => {
+              const li = document.createElement('li');
+              li.innerHTML = `<a class="dropdown-item text-white" href="#" style="white-space:normal;font-size:0.85rem;">\${n.message}</a>`;
+              li.addEventListener('click', async (e) => {
+                 e.preventDefault();
+                 await fetch(API + '/api/v1/notifications/' + n.id + '/read', {method:'PATCH'});
+                 loadNotifications();
+              });
+              list.appendChild(li);
+           });
+        } else {
+           badge.style.display = 'none';
+           list.innerHTML = '<li><a class="dropdown-item text-white-50" href="#">No new notifications</a></li>';
+        }
+      } catch(e) {}
+    }
+
+    setInterval(loadNotifications, 30000); // Check every 30s
+    loadNotifications();
+    loadDocuments();
     loadDoctors().then(loadAppointments);
   </script>
   <jsp:include page="/WEB-INF/jsp/include/portal-chat-widget.jsp"/>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

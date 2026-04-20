@@ -51,6 +51,7 @@ CREATE TABLE appointments (
   slot_id BIGINT NULL,
   appointment_time DATETIME NOT NULL,
   status VARCHAR(20) NOT NULL DEFAULT 'SCHEDULED',
+  reminder_sent TINYINT NOT NULL DEFAULT 0,
   notes TEXT NULL,
   CONSTRAINT fk_appt_patient FOREIGN KEY (patient_id) REFERENCES patients (id)
     ON DELETE CASCADE,
@@ -58,6 +59,38 @@ CREATE TABLE appointments (
     ON DELETE CASCADE,
   CONSTRAINT fk_appt_slot FOREIGN KEY (slot_id) REFERENCES doctor_slots (id)
     ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE patient_documents (
+  id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  patient_id BIGINT NOT NULL,
+  uploader_id BIGINT NOT NULL, -- Either patient or doctor who uploaded it
+  uploader_role VARCHAR(20) NOT NULL DEFAULT 'PATIENT',
+  filename VARCHAR(255) NOT NULL,
+  filepath VARCHAR(512) NOT NULL,
+  uploaded_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_doc_patient FOREIGN KEY (patient_id) REFERENCES patients (id)
+    ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE prescriptions (
+  id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  appointment_id BIGINT NOT NULL,
+  medication VARCHAR(255) NOT NULL,
+  dosage VARCHAR(100) NOT NULL,
+  instructions TEXT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_rx_appointment FOREIGN KEY (appointment_id) REFERENCES appointments (id)
+    ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE notifications (
+  id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  user_id BIGINT NOT NULL,
+  user_type VARCHAR(20) NOT NULL, -- 'PATIENT' or 'DOCTOR'
+  message TEXT NOT NULL,
+  is_read TINYINT NOT NULL DEFAULT 0,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
 -- Demo password for all seeded accounts: password123 (bcrypt)

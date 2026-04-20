@@ -7,6 +7,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Patient — Profile</title>
   <jsp:include page="/WEB-INF/jsp/include/portal-head.jsp"/>
+  <style>
+    body.portal-body { font-family: 'DM Sans', system-ui, sans-serif; background: #0b1628; color: #ccd6f6; min-height: 100vh; }
+    .portal-bg-orb { position: fixed; border-radius: 50%; filter: blur(80px); opacity: 0.18; pointer-events: none; z-index: 0; }
+    .portal-bg-orb-1 { width: 480px; height: 480px; background: #0ee8c4; top: -140px; left: -180px; }
+    .portal-bg-orb-2 { width: 360px; height: 360px; background: #3b82f6; bottom: -120px; right: -120px; }
+    .portal-bg-grid { position: fixed; inset: 0; background-image: linear-gradient(rgba(14,232,196,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(14,232,196,.04) 1px, transparent 1px); background-size: 60px 60px; pointer-events: none; z-index: 0; }
+    .portal-nav { position: relative; z-index: 10; background: rgba(11,22,40,.82)!important; backdrop-filter: blur(14px); border-bottom: 1px solid rgba(14,232,196,.15)!important; }
+    .portal-brand { font-family: 'Playfair Display', Georgia, serif; color: #ccd6f6 !important; }
+    .portal-main { position: relative; z-index: 5; }
+    .portal-hero h1 { font-family: 'Playfair Display', Georgia, serif; font-size: 1.65rem; margin-bottom: .35rem; }
+    .portal-hero p, .text-muted-portal { color: #8892b0 !important; }
+    .panel-card { background: rgba(17,34,64,.82); border: 1px solid rgba(14,232,196,.12)!important; border-radius: 14px; backdrop-filter: blur(14px); box-shadow: 0 18px 40px rgba(0,0,0,.35); }
+    .panel-title { color: #ccd6f6; font-family: 'Playfair Display', Georgia, serif; }
+    .panel-subtitle { color: #8892b0 !important; }
+    .form-label { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: #8892b0; margin-bottom: 6px; }
+    .form-control { background: rgba(11,22,40,.7)!important; border: 1px solid rgba(136,146,176,.25)!important; color: #ccd6f6!important; }
+    .form-control:focus { border-color: #0ee8c4!important; box-shadow: 0 0 0 3px rgba(14,232,196,.12)!important; }
+    .btn-primary { background: linear-gradient(135deg,#0ee8c4,#0acfb1); border: none; color: #0b1628; font-weight: 600; box-shadow: 0 8px 22px rgba(14,232,196,.35); }
+    .btn-outline-light { border-color: rgba(204,214,246,.35); color: #ccd6f6; }
+    .portal-footer { position: relative; z-index: 5; padding: 1.5rem 0 2rem; text-align: center; font-size: .8rem; color: rgba(136,146,176,.55); }
+    .portal-footer a { color: rgba(14,232,196,.85); text-decoration: none; }
+  </style>
 </head>
 <body class="app-bg portal-body portal-page">
   <div class="portal-bg-orb portal-bg-orb-1"></div>
