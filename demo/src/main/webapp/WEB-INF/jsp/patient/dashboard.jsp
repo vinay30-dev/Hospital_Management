@@ -297,7 +297,7 @@
                 const rxList = await getJson(API + '/api/v1/appointments/' + btn.dataset.id + '/prescriptions');
                 if(!rxList.length) { alert('No prescription found for this visit.'); return; }
                 const rx = rxList[0];
-                alert(`Medication: ${rx.medication}\nDosage: ${rx.dosage}\nNotes: ${rx.instructions}`);
+                alert(`Medication: \${rx.medication}\nDosage: \${rx.dosage}\nNotes: \${rx.instructions}`);
               } catch(e) { }
             });
           });

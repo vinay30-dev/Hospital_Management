@@ -83,3 +83,7 @@ All use password **`password123`**:
 - Patient **profile** (`/patient/profile`): view name/email and update **phone** via Hibernate.
 - Doctor analytics page: status counts, charts, date-range filtering.
 - API upgrades: stricter status/date validation, overlap prevention for slot creation, summary + timeline endpoints.
+- **Clinical Records**: File uploads support (`multer`) for patients to attach past lab reports and documents. Doctors can effortlessly view/download them.
+- **Digital Prescriptions**: Built-in capability for doctors to issue medications, dosages, and instructions during a visit.
+- **Automated Notifications**: Background polling job scans for appointments within 24 hours to silently trigger in-app bell reminders, eliminating no-shows.
+- **UI Bug Fixes**: Hardened the Tomcat JSP renderer against Java EL collisions to ensure complex scheduling data popups display reliably.
